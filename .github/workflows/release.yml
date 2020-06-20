@@ -1,0 +1,33 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest]
+        rust: [stable]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Setup Rust
+      uses: hecrj/setup-rust-action@v1
+      with:
+        rust-version: ${{ matrix.rust }}
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: Build for Windows
+      run: cargo build --locked --release --target=x86_64-pc-windows-msvc
+    - name: Move binary
+      run: mv target/x86_64-pc-windows-msvc/release/pc_assist.exe ./pc_assist.exe
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: '*.exe'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
